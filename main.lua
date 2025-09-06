@@ -1,12 +1,20 @@
+--[[
+	AzyUI v2.0 - Modern Rebuild
+	This version reintroduces rounded corners using the compatible 'UICorner' instance
+	and adds other visual improvements for a modern aesthetic.
+]]
+
 return function()
+	--// Services
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
-	local RunService = game:GetService("RunService")
 	local Players = game:GetService("Players")
 
+	--// Main Library Table
 	local Azy = {}
 	Azy.__index = Azy
 
+	--// Configuration & Themes
 	local Themes = {
 		Nighty = {
 			Background = Color3.fromRGB(24, 25, 30),
@@ -16,6 +24,7 @@ return function()
 			Text = Color3.fromRGB(220, 221, 222),
 			MutedText = Color3.fromRGB(150, 150, 150),
 			Success = Color3.fromRGB(80, 194, 118),
+			Shadow = Color3.fromRGB(10, 10, 15),
 		},
 		Dark = {
 			Background = Color3.fromRGB(18, 18, 18),
@@ -25,6 +34,7 @@ return function()
 			Text = Color3.fromRGB(240, 240, 240),
 			MutedText = Color3.fromRGB(170, 170, 170),
 			Success = Color3.fromRGB(80, 194, 118),
+			Shadow = Color3.fromRGB(0, 0, 0),
 		},
 		White = {
 			Background = Color3.fromRGB(245, 245, 245),
@@ -34,11 +44,18 @@ return function()
 			Text = Color3.fromRGB(20, 20, 20),
 			MutedText = Color3.fromRGB(100, 100, 100),
 			Success = Color3.fromRGB(0, 180, 100),
+			Shadow = Color3.fromRGB(150, 150, 150),
 		}
 	}
 
+	--// Helper Functions
 	local function Create(instanceType, properties)
-		local inst = Instance.new(instanceType)
+		-- Pcall to handle cases where an instance type might not be supported
+		local success, inst = pcall(function() return Instance.new(instanceType) end)
+		if not success then
+			warn("AzyUI: Could not create instance of type '"..instanceType.."'. Your executor may not support it.")
+			return nil
+		end
 		for prop, value in pairs(properties or {}) do
 			inst[prop] = value
 		end
@@ -83,32 +100,60 @@ return function()
 		end)
 	end
 
+	--============================================================================--
+	--                                 WINDOW                                     --
+	--============================================================================--
 	function Azy:Window(config)
 		local Window = {}
 		setmetatable(Window, Azy)
+
 		Window.Title = config.Title or "Azy UI"
 		Window.Footer = config.Footer
-		Window.Theme = Themes[config.Theme] or Themes.Nighty
+		Window.Theme = Themes[config.Theme] or Themes.Dark
 		Window.Icon = config.Icon
 		Window.Tabs = {}
 		Window.ActiveTab = nil
+
 		Window.ScreenGui = Create("ScreenGui", {
 			Name = "Azy_Window_"..Window.Title,
 			Parent = game:GetService("CoreGui"),
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ResetOnSpawn = false
 		})
-		Window.MainFrame = Create("Frame", {
-			Name = "MainFrame",
+
+		local ShadowFrame = Create("Frame", {
+			Name = "ShadowFrame",
 			Size = UDim2.new(0, 550, 0, 380),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundColor3 = Window.Theme.Background,
-			BackgroundTransparency = 0.15,
-			BorderSizePixel = 1,
-            BorderColor3 = Window.Theme.Secondary,
-			Parent = Window.ScreenGui
+			BackgroundTransparency = 1,
+			Parent = Window.ScreenGui,
 		})
+
+		Window.MainFrame = Create("Frame", {
+			Name = "MainFrame",
+			Size = UDim2.new(1, 0, 1, 0),
+			Position = UDim2.fromScale(0.5, 0.5),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Window.Theme.Background,
+			BackgroundTransparency = 0.1,
+			BorderSizePixel = 0,
+			Parent = ShadowFrame
+		})
+        
+        -- Use UICorner for rounded corners
+		Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Window.MainFrame })
+		Create("UIStroke", { Color = Window.Theme.Secondary, Thickness = 1, Parent = Window.MainFrame })
+
+		pcall(function()
+			Create("UIDropShadow", {
+				Transparency = 0.7,
+				Color = Window.Theme.Shadow,
+				Offset = Vector2.new(0, 4),
+				Parent = Window.MainFrame
+			})
+		end)
+
 		local Header = Create("Frame", {
 			Name = "Header",
 			Size = UDim2.new(1, 0, 0, 40),
@@ -116,11 +161,12 @@ return function()
 			BorderSizePixel = 0,
 			Parent = Window.MainFrame
 		})
+		Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Header })
+
 		local TitleLabel = Create("TextLabel", {
 			Name = "TitleLabel",
 			Size = UDim2.new(1, -50, 1, 0),
 			Position = UDim2.new(0, 0, 0, 0),
-			BackgroundColor3 = Window.Theme.Primary,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamSemibold,
 			Text = " "..Window.Title,
@@ -129,20 +175,21 @@ return function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = Header
 		})
-		if Window.Icon then
-			local iconId = "rbxassetid://".. (tonumber(Window.Icon) or Window.Icon)
+
+		if Window.Icon and tonumber(Window.Icon) then
 			local IconImage = Create("ImageLabel", {
 				Name = "Icon",
 				Size = UDim2.new(0, 24, 0, 24),
 				Position = UDim2.new(0, 8, 0.5, 0),
 				AnchorPoint = Vector2.new(0, 0.5),
 				BackgroundTransparency = 1,
-				Image = iconId,
+				Image = "rbxassetid://"..Window.Icon,
 				Parent = TitleLabel
 			})
-			TitleLabel.Text = "  "..Window.Title
+			TitleLabel.Text = "  " .. Window.Title
 			TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
 		end
+
 		if Window.Footer then
 			local FooterFrame = Create("Frame", {
 				Name = "Footer",
@@ -152,6 +199,7 @@ return function()
 				BorderSizePixel = 0,
 				Parent = Window.MainFrame,
 			})
+			Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = FooterFrame })
 			Create("TextLabel", {
 				Name = "FooterLabel",
 				Size = UDim2.new(1, -10, 1, 0),
@@ -165,6 +213,7 @@ return function()
 				Parent = FooterFrame
 			})
 		end
+
 		Window.TabContainer = Create("Frame", {
 			Name = "TabContainer",
 			Size = UDim2.new(0, 120, 1, -40 - (Window.Footer and 25 or 0)),
@@ -173,6 +222,7 @@ return function()
 			BorderSizePixel = 0,
 			Parent = Window.MainFrame
 		})
+
 		Create("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Padding = UDim.new(0, 5),
@@ -180,10 +230,8 @@ return function()
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			Parent = Window.TabContainer
 		})
-		Create("UIPadding", {
-			PaddingTop = UDim.new(0, 10),
-			Parent = Window.TabContainer
-		})
+		Create("UIPadding", { PaddingTop = UDim.new(0, 10), Parent = Window.TabContainer })
+
 		Window.ContentContainer = Create("Frame", {
 			Name = "ContentContainer",
 			Size = UDim2.new(1, -120, 1, -40 - (Window.Footer and 25 or 0)),
@@ -193,7 +241,9 @@ return function()
 			ClipsDescendants = true,
 			Parent = Window.MainFrame
 		})
-		MakeDraggable(Window.MainFrame, Header)
+		
+		MakeDraggable(ShadowFrame, Header)
+		
 		function Window:SetActiveTab(tabToActivate)
 			if Window.ActiveTab == tabToActivate then return end
 			for _, tab in pairs(Window.Tabs) do
@@ -202,9 +252,9 @@ return function()
 				Animate(tab.Indicator, { Visible = isTarget }, 0.2)
 				if isTarget then
 					tab.Content.Visible = true
-					Animate(tab.Content, {GroupTransparency = 0, Position = UDim2.new(0, 10, 0, 10)}, 0.3)
+					Animate(tab.Content, {GroupTransparency = 0, Position = UDim2.new(0, 15, 0, 15)}, 0.3)
 				else
-					local hideTween = Animate(tab.Content, {GroupTransparency = 1, Position = UDim2.new(0, -10, 0, 10)}, 0.3)
+					local hideTween = Animate(tab.Content, {GroupTransparency = 1, Position = UDim2.new(0, -15, 0, 15)}, 0.3)
 					hideTween.Completed:Connect(function()
 						if tab.Content.GroupTransparency == 1 then
 							tab.Content.Visible = false
@@ -214,14 +264,19 @@ return function()
 			end
 			Window.ActiveTab = tabToActivate
 		end
+		
 		return Window
 	end
 
+	--============================================================================--
+	--                                  TABS                                      --
+	--============================================================================--
 	function Azy:NewTab(config)
 		local Tab = {}
 		local Window = self
+		
 		Tab.Name = config.Name or "New Tab"
-		Tab.Icon = config.Icon
+		
 		Tab.Button = Create("TextButton", {
 			Name = Tab.Name,
 			Size = UDim2.new(1, -20, 0, 30),
@@ -230,9 +285,11 @@ return function()
 			Text = "",
 			Parent = Window.TabContainer
 		})
+		Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Tab.Button })
+		
 		Tab.Indicator = Create("Frame", {
 			Name = "Indicator",
-			Size = UDim2.new(0, 3, 1, 0),
+			Size = UDim2.new(0, 3, 0.7, 0),
 			Position = UDim2.fromScale(0, 0.5),
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Window.Theme.Accent,
@@ -240,7 +297,9 @@ return function()
 			Visible = false,
 			Parent = Tab.Button
 		})
-		local TabLabel = Create("TextLabel", {
+		Create("UICorner", { Parent = Tab.Indicator })
+		
+		Create("TextLabel", {
 			Name = "TabLabel",
 			Size = UDim2.new(1, 0, 1, 0),
 			BackgroundTransparency = 1,
@@ -251,15 +310,17 @@ return function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = Tab.Button
 		})
+		
 		Tab.Content = Create("CanvasGroup", {
 			Name = "Content_"..Tab.Name,
-			Size = UDim2.new(1, -20, 1, -20),
-			Position = UDim2.new(0, -10, 0, 10),
+			Size = UDim2.new(1, -30, 1, -30),
+			Position = UDim2.new(0, -15, 0, 15),
 			GroupTransparency = 1,
 			Visible = false,
 			BackgroundTransparency = 1,
 			Parent = Window.ContentContainer
 		})
+
 		local ScrollingContent = Create("ScrollingFrame", {
 			Name = "ScrollingContent",
 			Size = UDim2.new(1, 0, 1, 0),
@@ -270,34 +331,32 @@ return function()
 			ScrollBarThickness = 4,
 			Parent = Tab.Content
 		})
+		
 		local Layout = Create("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 8),
+			Padding = UDim.new(0, 10),
 			FillDirection = Enum.FillDirection.Vertical,
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			Parent = ScrollingContent
 		})
+		
 		Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 			ScrollingContent.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y)
 		end)
+		
 		Tab.Button.MouseEnter:Connect(function()
-			if Window.ActiveTab ~= Tab then
-				Animate(Tab.Button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2)
-			end
+			if Window.ActiveTab ~= Tab then Animate(Tab.Button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2) end
 		end)
 		Tab.Button.MouseLeave:Connect(function()
-			if Window.ActiveTab ~= Tab then
-				Animate(Tab.Button, { BackgroundColor3 = Window.Theme.Primary }, 0.2)
-			end
+			if Window.ActiveTab ~= Tab then Animate(Tab.Button, { BackgroundColor3 = Window.Theme.Primary }, 0.2) end
 		end)
-		Tab.Button.MouseButton1Click:Connect(function()
-			Window:SetActiveTab(Tab)
-		end)
+		Tab.Button.MouseButton1Click:Connect(function() Window:SetActiveTab(Tab) end)
+		
 		table.insert(Window.Tabs, Tab)
-		if not Window.ActiveTab then
-			Window:SetActiveTab(Tab)
-		end
+		if not Window.ActiveTab then Window:SetActiveTab(Tab) end
+		
 		local TabMethods = {}
+		
 		function TabMethods:NewLabel(labelConfig)
 			local label = Create("TextLabel", {
 				Name = "Label",
@@ -312,6 +371,7 @@ return function()
 			})
 			return label
 		end
+		
 		function TabMethods:NewButton(buttonConfig)
 			local button = Create("TextButton", {
 				Name = "Button",
@@ -324,30 +384,35 @@ return function()
 				AutoButtonColor = false,
 				Parent = ScrollingContent,
 			})
+			Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = button })
+			
 			button.MouseEnter:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Accent }, 0.2) end)
 			button.MouseLeave:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2) end)
 			button.MouseButton1Click:Connect(function()
 				local pressAnimation = Animate(button, { Size = UDim2.new(1, 0, 0, 32) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 				pressAnimation.Completed:Wait()
 				Animate(button, { Size = UDim2.new(1, 0, 0, 35) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-				if buttonConfig.Callback then
-					task.spawn(buttonConfig.Callback)
-				end
+				if buttonConfig.Callback then task.spawn(buttonConfig.Callback) end
 			end)
 			return button
 		end
+		
 		function TabMethods:NewToggle(toggleConfig)
 			local Toggle = {}
 			local state = toggleConfig.Default or false
+			
 			local container = Create("Frame", {
 				Name = "ToggleContainer",
-				Size = UDim2.new(1, 0, 0, 40),
+				Size = UDim2.new(1, 0, 0, 35),
 				BackgroundTransparency = 1,
 				Parent = ScrollingContent
 			})
-			local label = Create("TextLabel", {
+
+			Create("TextLabel", {
 				Name = "Label",
 				Size = UDim2.new(0.7, 0, 1, 0),
+				Position = UDim2.fromScale(0, 0.5),
+				AnchorPoint = Vector2.new(0, 0.5),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.Gotham,
 				Text = toggleConfig.Text or "Toggle",
@@ -356,6 +421,7 @@ return function()
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = container
 			})
+			
 			local toggleButton = Create("TextButton", {
 				Name = "ToggleButton",
 				Size = UDim2.new(0, 44, 0, 24),
@@ -366,38 +432,41 @@ return function()
 				AutoButtonColor = false,
 				Parent = container
 			})
+			Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = toggleButton })
+			
 			local knob = Create("Frame", {
 				Name = "Knob",
-				Size = UDim2.new(0, 20, 0, 20),
-				Position = state and UDim2.fromScale(0.95, 0.5) or UDim2.fromScale(0.05, 0.5),
-				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.fromOffset(20, 20),
+				Position = state and UDim2.fromScale(1, 0.5) or UDim2.fromScale(0, 0.5),
+				AnchorPoint = state and Vector2.new(1.1, 0.5) or Vector2.new(-0.1, 0.5),
 				BackgroundColor3 = Color3.new(1,1,1),
 				BorderSizePixel = 0,
 				Parent = toggleButton
 			})
+			Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = knob })
+
 			Toggle.Toggled = Instance.new("BindableEvent")
 			Toggle.Value = state
+
 			local function SetState(newState)
 				state = newState
 				Toggle.Value = newState
 				Toggle.Toggled:Fire(newState)
 				Animate(toggleButton, { BackgroundColor3 = state and Window.Theme.Success or Window.Theme.Secondary })
-				if state then
-					Animate(knob, { Position = UDim2.fromScale(0.95, 0.5) })
-				else
-					Animate(knob, { Position = UDim2.fromScale(0.05, 0.5) })
-				end
+				if state then Animate(knob, { Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1.1, 0.5) })
+				else Animate(knob, { Position = UDim2.fromScale(0, 0.5), AnchorPoint = Vector2.new(-0.1, 0.5) }) end
 			end
+			
 			toggleButton.MouseButton1Click:Connect(function()
 				SetState(not state)
-				if toggleConfig.Callback then
-					task.spawn(toggleConfig.Callback, state)
-				end
+				if toggleConfig.Callback then task.spawn(toggleConfig.Callback, state) end
 			end)
 			return Toggle
 		end
+		
 		setmetatable(Tab, {__index = TabMethods})
 		return Tab
 	end
+
 	return Azy
 end
