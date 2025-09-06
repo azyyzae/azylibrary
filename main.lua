@@ -105,14 +105,9 @@ return function()
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = Window.Theme.Background,
 			BackgroundTransparency = 0.15,
-			BorderSizePixel = 0,
+			BorderSizePixel = 1,
+            BorderColor3 = Window.Theme.Secondary,
 			Parent = Window.ScreenGui
-		})
-		Create("UIRound", { CornerRadius = UDim.new(0, 8), Parent = Window.MainFrame })
-		Create("UIStroke", {
-			Color = Window.Theme.Secondary,
-			Thickness = 1,
-			Parent = Window.MainFrame
 		})
 		local Header = Create("Frame", {
 			Name = "Header",
@@ -121,7 +116,6 @@ return function()
 			BorderSizePixel = 0,
 			Parent = Window.MainFrame
 		})
-		Create("UIRound", { CornerRadius = UDim.new(0, 8), Parent = Header })
 		local TitleLabel = Create("TextLabel", {
 			Name = "TitleLabel",
 			Size = UDim2.new(1, -50, 1, 0),
@@ -158,7 +152,6 @@ return function()
 				BorderSizePixel = 0,
 				Parent = Window.MainFrame,
 			})
-			Create("UIRound", { CornerRadius = UDim.new(0, 8), Parent = FooterFrame })
 			Create("TextLabel", {
 				Name = "FooterLabel",
 				Size = UDim2.new(1, -10, 1, 0),
@@ -237,10 +230,9 @@ return function()
 			Text = "",
 			Parent = Window.TabContainer
 		})
-		Create("UIRound", { CornerRadius = UDim.new(0, 6), Parent = Tab.Button })
 		Tab.Indicator = Create("Frame", {
 			Name = "Indicator",
-			Size = UDim2.new(0, 3, 0.7, 0),
+			Size = UDim2.new(0, 3, 1, 0),
 			Position = UDim2.fromScale(0, 0.5),
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Window.Theme.Accent,
@@ -248,7 +240,6 @@ return function()
 			Visible = false,
 			Parent = Tab.Button
 		})
-		Create("UIRound", { Parent = Tab.Indicator })
 		local TabLabel = Create("TextLabel", {
 			Name = "TabLabel",
 			Size = UDim2.new(1, 0, 1, 0),
@@ -333,7 +324,6 @@ return function()
 				AutoButtonColor = false,
 				Parent = ScrollingContent,
 			})
-			Create("UIRound", { CornerRadius = UDim.new(0, 6), Parent = button })
 			button.MouseEnter:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Accent }, 0.2) end)
 			button.MouseLeave:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2) end)
 			button.MouseButton1Click:Connect(function()
@@ -376,17 +366,15 @@ return function()
 				AutoButtonColor = false,
 				Parent = container
 			})
-			Create("UIRound", { CornerRadius = UDim.new(1, 0), Parent = toggleButton })
 			local knob = Create("Frame", {
 				Name = "Knob",
 				Size = UDim2.new(0, 20, 0, 20),
-				Position = state and UDim2.fromScale(1, 0.5) or UDim2.fromScale(0, 0.5),
-				AnchorPoint = state and Vector2.new(1.1, 0.5) or Vector2.new(-0.1, 0.5),
+				Position = state and UDim2.fromScale(0.95, 0.5) or UDim2.fromScale(0.05, 0.5),
+				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundColor3 = Color3.new(1,1,1),
 				BorderSizePixel = 0,
 				Parent = toggleButton
 			})
-			Create("UIRound", { CornerRadius = UDim.new(1, 0), Parent = knob })
 			Toggle.Toggled = Instance.new("BindableEvent")
 			Toggle.Value = state
 			local function SetState(newState)
@@ -395,9 +383,9 @@ return function()
 				Toggle.Toggled:Fire(newState)
 				Animate(toggleButton, { BackgroundColor3 = state and Window.Theme.Success or Window.Theme.Secondary })
 				if state then
-					Animate(knob, { Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1.1, 0.5) })
+					Animate(knob, { Position = UDim2.fromScale(0.95, 0.5) })
 				else
-					Animate(knob, { Position = UDim2.fromScale(0, 0.5), AnchorPoint = Vector2.new(-0.1, 0.5) })
+					Animate(knob, { Position = UDim2.fromScale(0.05, 0.5) })
 				end
 			end
 			toggleButton.MouseButton1Click:Connect(function()
