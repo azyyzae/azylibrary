@@ -1,5 +1,5 @@
 --[[
-	AzyUI v1.0
+	AzyUI v1.1 - Parser Compatibility Fix
 	A modern, animated, and customizable UI library for Roblox.
 	Created by: Your AI assistant
 ]]
@@ -116,7 +116,7 @@ return function()
 		--// Create GUI
 		Window.ScreenGui = Create("ScreenGui", {
 			Name = "Azy_Window_"..Window.Title,
-			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
+			Parent = game:GetService("CoreGui"), -- Changed to CoreGui for better compatibility
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ResetOnSpawn = false
 		})
@@ -264,11 +264,18 @@ return function()
 					tab.Content.Visible = true
 					Animate(tab.Content, {GroupTransparency = 0, Position = UDim2.new(0, 10, 0, 10)}, 0.3)
 				else
-					Animate(tab.Content, {GroupTransparency = 1, Position = UDim2.new(0, -10, 0, 10)}, 0.3):GetPropertyChangedSignal("Status"):Connect(function()
+					--// ===================================
+					--//      vvv   CODE CHANGED    vvv
+					--//====================================
+					local hideTween = Animate(tab.Content, {GroupTransparency = 1, Position = UDim2.new(0, -10, 0, 10)}, 0.3)
+					hideTween.Completed:Connect(function()
 						if tab.Content.GroupTransparency == 1 then
 							tab.Content.Visible = false
 						end
 					end)
+					--// ===================================
+					--//      ^^^   CODE CHANGED    ^^^
+					--//====================================
 				end
 			end
 			Window.ActiveTab = tabToActivate
@@ -410,7 +417,14 @@ return function()
 			button.MouseEnter:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Accent }, 0.2) end)
 			button.MouseLeave:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2) end)
 			button.MouseButton1Click:Connect(function()
-				Animate(button, { Size = UDim2.new(1, 0, 0, 32) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Completed:Wait()
+				--// ===================================
+				--//      vvv   CODE CHANGED    vvv
+				--//====================================
+				local pressAnimation = Animate(button, { Size = UDim2.new(1, 0, 0, 32) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+				pressAnimation.Completed:Wait()
+				--// ===================================
+				--//      ^^^   CODE CHANGED    ^^^
+				--//====================================
 				Animate(button, { Size = UDim2.new(1, 0, 0, 35) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 				if buttonConfig.Callback then
 					task.spawn(buttonConfig.Callback)
