@@ -1,21 +1,12 @@
---[[
-	AzyUI v1.1 - Parser Compatibility Fix
-	A modern, animated, and customizable UI library for Roblox.
-	Created by: Your AI assistant
-]]
-
 return function()
-	--// Services
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local RunService = game:GetService("RunService")
 	local Players = game:GetService("Players")
 
-	--// Main Library Table
 	local Azy = {}
 	Azy.__index = Azy
 
-	--// Configuration & Themes
 	local Themes = {
 		Nighty = {
 			Background = Color3.fromRGB(24, 25, 30),
@@ -30,7 +21,7 @@ return function()
 			Background = Color3.fromRGB(18, 18, 18),
 			Primary = Color3.fromRGB(28, 28, 28),
 			Secondary = Color3.fromRGB(44, 44, 44),
-			Accent = Color3.fromRGB(52, 120, 246), -- A nice blue
+			Accent = Color3.fromRGB(52, 120, 246),
 			Text = Color3.fromRGB(240, 240, 240),
 			MutedText = Color3.fromRGB(170, 170, 170),
 			Success = Color3.fromRGB(80, 194, 118),
@@ -39,14 +30,13 @@ return function()
 			Background = Color3.fromRGB(245, 245, 245),
 			Primary = Color3.fromRGB(255, 255, 255),
 			Secondary = Color3.fromRGB(230, 230, 230),
-			Accent = Color3.fromRGB(255, 82, 82), -- A nice red/coral
+			Accent = Color3.fromRGB(255, 82, 82),
 			Text = Color3.fromRGB(20, 20, 20),
 			MutedText = Color3.fromRGB(100, 100, 100),
 			Success = Color3.fromRGB(0, 180, 100),
 		}
 	}
 
-	--// Helper Functions
 	local function Create(instanceType, properties)
 		local inst = Instance.new(instanceType)
 		for prop, value in pairs(properties or {}) do
@@ -66,10 +56,8 @@ return function()
 
 	local function MakeDraggable(guiObject, handle)
 		local dragging = false
-		local dragInput = nil
 		local dragStart = nil
 		local startPos = nil
-
 		handle.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dragging = true
@@ -82,13 +70,11 @@ return function()
 				end)
 			end
 		end)
-
 		handle.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dragging = false
 			end
 		end)
-
 		UserInputService.InputChanged:Connect(function(input)
 			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 				local delta = input.Position - dragStart
@@ -97,64 +83,37 @@ return function()
 		end)
 	end
 
-
-	--============================================================================--
-	--                                 WINDOW                                     --
-	--============================================================================--
 	function Azy:Window(config)
 		local Window = {}
 		setmetatable(Window, Azy)
-
-		--// Configuration
 		Window.Title = config.Title or "Azy UI"
 		Window.Footer = config.Footer
 		Window.Theme = Themes[config.Theme] or Themes.Nighty
 		Window.Icon = config.Icon
 		Window.Tabs = {}
 		Window.ActiveTab = nil
-
-		--// Create GUI
 		Window.ScreenGui = Create("ScreenGui", {
 			Name = "Azy_Window_"..Window.Title,
-			Parent = game:GetService("CoreGui"), -- Changed to CoreGui for better compatibility
+			Parent = game:GetService("CoreGui"),
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ResetOnSpawn = false
 		})
-
-		--// Main Frame (with blur)
 		Window.MainFrame = Create("Frame", {
 			Name = "MainFrame",
 			Size = UDim2.new(0, 550, 0, 380),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = Window.Theme.Background,
+			BackgroundTransparency = 0.15,
 			BorderSizePixel = 0,
 			Parent = Window.ScreenGui
 		})
-
-		Create("UIBlur", {
-			Size = 12,
-			Parent = Window.MainFrame,
-		})
 		Create("UIRound", { CornerRadius = UDim.new(0, 8), Parent = Window.MainFrame })
-		Create("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-				ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.2), -- Controls blur transparency
-				NumberSequenceKeypoint.new(1, 0.2)
-			}),
-			Parent = Window.MainFrame
-		})
 		Create("UIStroke", {
 			Color = Window.Theme.Secondary,
 			Thickness = 1,
 			Parent = Window.MainFrame
 		})
-
-		--// Header
 		local Header = Create("Frame", {
 			Name = "Header",
 			Size = UDim2.new(1, 0, 0, 40),
@@ -163,7 +122,6 @@ return function()
 			Parent = Window.MainFrame
 		})
 		Create("UIRound", { CornerRadius = UDim.new(0, 8), Parent = Header })
-
 		local TitleLabel = Create("TextLabel", {
 			Name = "TitleLabel",
 			Size = UDim2.new(1, -50, 1, 0),
@@ -177,7 +135,6 @@ return function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = Header
 		})
-
 		if Window.Icon then
 			local iconId = "rbxassetid://".. (tonumber(Window.Icon) or Window.Icon)
 			local IconImage = Create("ImageLabel", {
@@ -192,8 +149,6 @@ return function()
 			TitleLabel.Text = "  "..Window.Title
 			TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
 		end
-
-		--// Footer
 		if Window.Footer then
 			local FooterFrame = Create("Frame", {
 				Name = "Footer",
@@ -217,9 +172,6 @@ return function()
 				Parent = FooterFrame
 			})
 		end
-
-
-		--// Content Area
 		Window.TabContainer = Create("Frame", {
 			Name = "TabContainer",
 			Size = UDim2.new(0, 120, 1, -40 - (Window.Footer and 25 or 0)),
@@ -239,8 +191,6 @@ return function()
 			PaddingTop = UDim.new(0, 10),
 			Parent = Window.TabContainer
 		})
-
-
 		Window.ContentContainer = Create("Frame", {
 			Name = "ContentContainer",
 			Size = UDim2.new(1, -120, 1, -40 - (Window.Footer and 25 or 0)),
@@ -250,12 +200,9 @@ return function()
 			ClipsDescendants = true,
 			Parent = Window.MainFrame
 		})
-		
 		MakeDraggable(Window.MainFrame, Header)
-		
 		function Window:SetActiveTab(tabToActivate)
 			if Window.ActiveTab == tabToActivate then return end
-			
 			for _, tab in pairs(Window.Tabs) do
 				local isTarget = (tab == tabToActivate)
 				Animate(tab.Button, { BackgroundColor3 = isTarget and Window.Theme.Secondary or Window.Theme.Primary }, 0.2)
@@ -264,37 +211,24 @@ return function()
 					tab.Content.Visible = true
 					Animate(tab.Content, {GroupTransparency = 0, Position = UDim2.new(0, 10, 0, 10)}, 0.3)
 				else
-					--// ===================================
-					--//      vvv   CODE CHANGED    vvv
-					--//====================================
 					local hideTween = Animate(tab.Content, {GroupTransparency = 1, Position = UDim2.new(0, -10, 0, 10)}, 0.3)
 					hideTween.Completed:Connect(function()
 						if tab.Content.GroupTransparency == 1 then
 							tab.Content.Visible = false
 						end
 					end)
-					--// ===================================
-					--//      ^^^   CODE CHANGED    ^^^
-					--//====================================
 				end
 			end
 			Window.ActiveTab = tabToActivate
 		end
-		
 		return Window
 	end
 
-	--============================================================================--
-	--                                  TABS                                      --
-	--============================================================================--
 	function Azy:NewTab(config)
 		local Tab = {}
-		local Window = self -- self is the window object
-		
+		local Window = self
 		Tab.Name = config.Name or "New Tab"
 		Tab.Icon = config.Icon
-		
-		--// Create Tab Button
 		Tab.Button = Create("TextButton", {
 			Name = Tab.Name,
 			Size = UDim2.new(1, -20, 0, 30),
@@ -304,7 +238,6 @@ return function()
 			Parent = Window.TabContainer
 		})
 		Create("UIRound", { CornerRadius = UDim.new(0, 6), Parent = Tab.Button })
-		
 		Tab.Indicator = Create("Frame", {
 			Name = "Indicator",
 			Size = UDim2.new(0, 3, 0.7, 0),
@@ -316,7 +249,6 @@ return function()
 			Parent = Tab.Button
 		})
 		Create("UIRound", { Parent = Tab.Indicator })
-		
 		local TabLabel = Create("TextLabel", {
 			Name = "TabLabel",
 			Size = UDim2.new(1, 0, 1, 0),
@@ -328,8 +260,6 @@ return function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = Tab.Button
 		})
-		
-		--// Create Content Page
 		Tab.Content = Create("CanvasGroup", {
 			Name = "Content_"..Tab.Name,
 			Size = UDim2.new(1, -20, 1, -20),
@@ -339,7 +269,6 @@ return function()
 			BackgroundTransparency = 1,
 			Parent = Window.ContentContainer
 		})
-
 		local ScrollingContent = Create("ScrollingFrame", {
 			Name = "ScrollingContent",
 			Size = UDim2.new(1, 0, 1, 0),
@@ -350,7 +279,6 @@ return function()
 			ScrollBarThickness = 4,
 			Parent = Tab.Content
 		})
-		
 		local Layout = Create("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Padding = UDim.new(0, 8),
@@ -358,11 +286,9 @@ return function()
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			Parent = ScrollingContent
 		})
-		
 		Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 			ScrollingContent.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y)
 		end)
-		
 		Tab.Button.MouseEnter:Connect(function()
 			if Window.ActiveTab ~= Tab then
 				Animate(Tab.Button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2)
@@ -376,15 +302,11 @@ return function()
 		Tab.Button.MouseButton1Click:Connect(function()
 			Window:SetActiveTab(Tab)
 		end)
-		
 		table.insert(Window.Tabs, Tab)
 		if not Window.ActiveTab then
 			Window:SetActiveTab(Tab)
 		end
-		
-		--// Methods for this tab
 		local TabMethods = {}
-		
 		function TabMethods:NewLabel(labelConfig)
 			local label = Create("TextLabel", {
 				Name = "Label",
@@ -399,7 +321,6 @@ return function()
 			})
 			return label
 		end
-		
 		function TabMethods:NewButton(buttonConfig)
 			local button = Create("TextButton", {
 				Name = "Button",
@@ -413,38 +334,27 @@ return function()
 				Parent = ScrollingContent,
 			})
 			Create("UIRound", { CornerRadius = UDim.new(0, 6), Parent = button })
-			
 			button.MouseEnter:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Accent }, 0.2) end)
 			button.MouseLeave:Connect(function() Animate(button, { BackgroundColor3 = Window.Theme.Secondary }, 0.2) end)
 			button.MouseButton1Click:Connect(function()
-				--// ===================================
-				--//      vvv   CODE CHANGED    vvv
-				--//====================================
 				local pressAnimation = Animate(button, { Size = UDim2.new(1, 0, 0, 32) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 				pressAnimation.Completed:Wait()
-				--// ===================================
-				--//      ^^^   CODE CHANGED    ^^^
-				--//====================================
 				Animate(button, { Size = UDim2.new(1, 0, 0, 35) }, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 				if buttonConfig.Callback then
 					task.spawn(buttonConfig.Callback)
 				end
 			end)
-			
 			return button
 		end
-		
 		function TabMethods:NewToggle(toggleConfig)
 			local Toggle = {}
 			local state = toggleConfig.Default or false
-			
 			local container = Create("Frame", {
 				Name = "ToggleContainer",
 				Size = UDim2.new(1, 0, 0, 40),
 				BackgroundTransparency = 1,
 				Parent = ScrollingContent
 			})
-
 			local label = Create("TextLabel", {
 				Name = "Label",
 				Size = UDim2.new(0.7, 0, 1, 0),
@@ -456,7 +366,6 @@ return function()
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = container
 			})
-			
 			local toggleButton = Create("TextButton", {
 				Name = "ToggleButton",
 				Size = UDim2.new(0, 44, 0, 24),
@@ -468,7 +377,6 @@ return function()
 				Parent = container
 			})
 			Create("UIRound", { CornerRadius = UDim.new(1, 0), Parent = toggleButton })
-			
 			local knob = Create("Frame", {
 				Name = "Knob",
 				Size = UDim2.new(0, 20, 0, 20),
@@ -479,15 +387,12 @@ return function()
 				Parent = toggleButton
 			})
 			Create("UIRound", { CornerRadius = UDim.new(1, 0), Parent = knob })
-
 			Toggle.Toggled = Instance.new("BindableEvent")
 			Toggle.Value = state
-
 			local function SetState(newState)
 				state = newState
 				Toggle.Value = newState
 				Toggle.Toggled:Fire(newState)
-
 				Animate(toggleButton, { BackgroundColor3 = state and Window.Theme.Success or Window.Theme.Secondary })
 				if state then
 					Animate(knob, { Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1.1, 0.5) })
@@ -495,20 +400,16 @@ return function()
 					Animate(knob, { Position = UDim2.fromScale(0, 0.5), AnchorPoint = Vector2.new(-0.1, 0.5) })
 				end
 			end
-			
 			toggleButton.MouseButton1Click:Connect(function()
 				SetState(not state)
 				if toggleConfig.Callback then
 					task.spawn(toggleConfig.Callback, state)
 				end
 			end)
-
 			return Toggle
 		end
-		
 		setmetatable(Tab, {__index = TabMethods})
 		return Tab
 	end
-
 	return Azy
 end
